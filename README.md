@@ -280,7 +280,7 @@ Every module is intentionally separated to encourage maintainability and readabi
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/<your-username>/safe-text2sql-analytics.git
+git clone https://github.com/Ank0it/safe-text2sql-analytics.git
 
 cd safe-text2sql-analytics
 ```

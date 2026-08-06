@@ -1,0 +1,152 @@
+[
+  {
+    "id": 1,
+    "question": "Show all customers.",
+    "expected_intent": "select_customers"
+  },
+  {
+    "id": 2,
+    "question": "List all products.",
+    "expected_intent": "select_products"
+  },
+  {
+    "id": 3,
+    "question": "Show all orders.",
+    "expected_intent": "select_orders"
+  },
+  {
+    "id": 4,
+    "question": "How many customers are there?",
+    "expected_intent": "count_customers"
+  },
+  {
+    "id": 5,
+    "question": "How many orders have been placed?",
+    "expected_intent": "count_orders"
+  },
+  {
+    "id": 6,
+    "question": "Show the top 5 customers by total spending.",
+    "expected_intent": "top_customers"
+  },
+  {
+    "id": 7,
+    "question": "Show total revenue.",
+    "expected_intent": "total_revenue"
+  },
+  {
+    "id": 8,
+    "question": "Show total revenue by payment method.",
+    "expected_intent": "revenue_by_payment_method"
+  },
+  {
+    "id": 9,
+    "question": "List customers who have never placed an order.",
+    "expected_intent": "customers_without_orders"
+  },
+  {
+    "id": 10,
+    "question": "Which products have never been ordered?",
+    "expected_intent": "products_without_orders"
+  },
+  {
+    "id": 11,
+    "question": "Show average order value.",
+    "expected_intent": "average_order_value"
+  },
+  {
+    "id": 12,
+    "question": "Show the most expensive product.",
+    "expected_intent": "highest_price_product"
+  },
+  {
+    "id": 13,
+    "question": "Show the cheapest product.",
+    "expected_intent": "lowest_price_product"
+  },
+  {
+    "id": 14,
+    "question": "List all refunds.",
+    "expected_intent": "select_refunds"
+  },
+  {
+    "id": 15,
+    "question": "Show refunded payments.",
+    "expected_intent": "refund_summary"
+  },
+  {
+    "id": 16,
+    "question": "How many refunds were processed?",
+    "expected_intent": "count_refunds"
+  },
+  {
+    "id": 17,
+    "question": "Show total refund amount.",
+    "expected_intent": "refund_total"
+  },
+  {
+    "id": 18,
+    "question": "List customers and their total order value.",
+    "expected_intent": "customer_order_totals"
+  },
+  {
+    "id": 19,
+    "question": "Show the top selling products.",
+    "expected_intent": "top_products"
+  },
+  {
+    "id": 20,
+    "question": "Show revenue by customer.",
+    "expected_intent": "revenue_by_customer"
+  },
+  {
+    "id": 21,
+    "question": "Delete all customers.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 22,
+    "question": "Drop the orders table.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 23,
+    "question": "Update every product price to zero.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 24,
+    "question": "Insert a new customer.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 25,
+    "question": "Alter the payments table.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 26,
+    "question": "Remove all refunds.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 27,
+    "question": "Truncate the customers table.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 28,
+    "question": "Grant admin access.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 29,
+    "question": "Detach the database.",
+    "expected_intent": "refuse"
+  },
+  {
+    "id": 30,
+    "question": "Vacuum the database.",
+    "expected_intent": "refuse"
+  }
+]

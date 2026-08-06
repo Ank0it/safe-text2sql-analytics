@@ -1,88 +1,196 @@
 import os
+import re
 
 import google.generativeai as genai
 from dotenv import load_dotenv
 
-from app.database import get_schema
+from app.database import get_relationships, get_schema
 
 load_dotenv()
 
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 if not API_KEY:
-    raise ValueError("GEMINI_API_KEY not found in environment variables.")
+    raise ValueError("GEMINI_API_KEY not found in .env file.")
 
 genai.configure(api_key=API_KEY)
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash") # or "gemini-2.5" for the standard model
 
 
 def build_prompt(question: str) -> str:
     """
-    Builds a schema-aware prompt for Text2SQL generation.
+    Build a schema-aware prompt for Text2SQL generation.
     """
 
     schema = get_schema()
+    relationships = get_relationships()
 
-    schema_description = ""
+    schema_text = ""
 
     for table, columns in schema.items():
-        schema_description += f"\nTable: {table}\n"
-        schema_description += "Columns:\n"
+        schema_text += f"\nTable: {table}\n"
 
         for column in columns:
-            schema_description += f"- {column}\n"
+            schema_text += f"  - {column}\n"
+
+    relationship_text = ""
+
+    if relationships:
+        for relation in relationships:
+            relationship_text += f"  - {relation}\n"
+    else:
+        relationship_text = "  No foreign-key relationships found.\n"
 
     prompt = f"""
 You are an expert SQLite SQL generator.
 
-Your task is to convert a natural language analytics question into SQL.
+Your task is to convert a natural-language analytics question into ONE valid SQLite SELECT query.
 
-Database Schema:
+========================
+DATABASE SCHEMA
+========================
 
-{schema_description}
+{schema_text}
 
-Rules:
+========================
+DATABASE RELATIONSHIPS
+========================
 
-1. Generate ONLY valid SQLite SQL.
-2. ONLY generate SELECT queries.
-3. Never generate:
-   - INSERT
-   - UPDATE
-   - DELETE
-   - DROP
-   - ALTER
-   - CREATE
-   - TRUNCATE
-4. Use ONLY tables and columns provided in the schema.
-5. Do NOT invent table names.
-6. Do NOT invent column names.
-7. Return ONLY SQL.
-8. Do NOT include markdown.
-9. Do NOT explain your answer.
+{relationship_text}
 
-User Question:
+========================
+STRICT RULES
+========================
+
+1. Return ONLY SQL.
+
+2. Return exactly ONE SQL statement.
+
+3. The query MUST be a SELECT statement.
+
+4. You may use:
+   - JOIN
+   - LEFT JOIN
+   - GROUP BY
+   - ORDER BY
+   - HAVING
+   - LIMIT
+   - Aggregate functions
+   - DISTINCT
+   - WITH (CTEs)
+
+5. NEVER generate:
+   INSERT
+   UPDATE
+   DELETE
+   DROP
+   ALTER
+   CREATE
+   TRUNCATE
+   PRAGMA
+   REPLACE
+
+6. NEVER invent tables.
+
+7. NEVER invent columns.
+
+8. Use the provided relationships whenever joins are required.
+
+9. Do NOT use Markdown.
+
+10. Do NOT explain your answer.
+
+11. Do NOT include comments.
+
+========================
+USER QUESTION
+========================
 
 {question}
 """
 
-    return prompt
+    return prompt.strip()
+
+
+def clean_sql(response_text: str) -> str:
+    """
+    Cleans Gemini output and extracts only SQL.
+    """
+
+    if not response_text:
+        return ""
+
+    sql = response_text.strip()
+
+    # Remove Markdown fences
+    sql = re.sub(r"```sql", "", sql, flags=re.IGNORECASE)
+    sql = re.sub(r"```", "", sql)
+
+    prefixes = [
+        "SQL:",
+        "Query:",
+        "Generated SQL:",
+        "Here is the SQL:",
+        "Here is your SQL:",
+    ]
+
+    for prefix in prefixes:
+        if sql.lower().startswith(prefix.lower()):
+            sql = sql[len(prefix):].strip()
+
+    # Keep only the first SQL statement ending with ;
+    match = re.search(
+        r"(SELECT|WITH).*?;",
+        sql,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    if match:
+        return match.group(0).strip()
+
+    # Fallback if semicolon is missing
+    match = re.search(
+        r"(SELECT|WITH).*",
+        sql,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+
+    if match:
+        return match.group(0).strip()
+
+    return ""
 
 
 def generate_sql(question: str) -> str:
     """
-    Generates SQL from a natural language question.
+    Generate SQL from a natural-language analytics question.
     """
 
     prompt = build_prompt(question)
 
-    response = model.generate_content(prompt)
+    try:
+        response = model.generate_content(
+            prompt,
+            generation_config={
+                "temperature": 0,
+                "top_p": 1,
+                "top_k": 1,
+            },
+        )
 
-    sql = response.text.strip()
+    except Exception as e:
+        print("\n" + "=" * 80)
+        print("GEMINI ERROR")
+        print("=" * 80)
+        print(type(e).__name__)
+        print(e)
+        print("=" * 80 + "\n")
+        return ""
 
-    # Remove markdown if the model returns it
-    sql = sql.replace("```sql", "")
-    sql = sql.replace("```", "")
-    sql = sql.strip()
+    if response is None:
+        return ""
 
-    return sql
+    text = getattr(response, "text", "")
+
+    return clean_sql(text)
